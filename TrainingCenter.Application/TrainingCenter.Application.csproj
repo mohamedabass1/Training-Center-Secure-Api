@@ -7,7 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\TrainingCenter.Domain\TrainingCenter.Domain.csproj" />
+    <ProjectReference Include="..\TrainingCenter.Infrastructure\TrainingCenter.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
