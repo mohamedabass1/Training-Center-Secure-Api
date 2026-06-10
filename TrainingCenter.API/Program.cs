@@ -1,5 +1,6 @@
 using FluentValidation; // Add this using directive
 using Microsoft.EntityFrameworkCore;
+using TrainingCenter.API.Common;
 using TrainingCenter.Application.Services;
 using TrainingCenter.Application.Validators.Instructors;
 using TrainingCenter.Infrastructure.Context;
@@ -33,6 +34,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.UseAuthorization();
 

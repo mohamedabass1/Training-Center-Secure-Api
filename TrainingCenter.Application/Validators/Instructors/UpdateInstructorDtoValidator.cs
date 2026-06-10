@@ -4,13 +4,12 @@ using TrainingCenter.Application.DTOs.Instructors;
 namespace TrainingCenter.Application.Validators.Instructors
 {
     /// <summary>
-    /// Validates CreateInstructorDto properties to ensure they meet required business rules and data integrity
-    /// constraints.
+    /// Validates the properties of an UpdateInstructorDto object to ensure they meet specified criteria.
     /// </summary>
-    public class CreateInstructorDtoValidator
-         : AbstractValidator<CreateInstructorDto>
+    public class UpdateInstructorDtoValidator
+       : AbstractValidator<UpdateInstructorDto>
     {
-        public CreateInstructorDtoValidator()
+        public UpdateInstructorDtoValidator()
         {
             RuleFor(x => x.FirstName)
                 .NotEmpty()
@@ -25,11 +24,6 @@ namespace TrainingCenter.Application.Validators.Instructors
                 .EmailAddress()
                 .MaximumLength(150);
 
-            RuleFor(x => x.HireDate)
-                .NotEmpty()
-                .LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.Today))
-                .WithMessage("Hire date cannot be in the future.");
-
             RuleFor(x => x.Salary)
                 .GreaterThanOrEqualTo(0);
 
@@ -37,8 +31,8 @@ namespace TrainingCenter.Application.Validators.Instructors
                 .GreaterThan(0)
                 .When(x => x.ManagerId.HasValue)
                 .WithMessage("ManagerId must be greater than zero.");
+
+
         }
-
-
     }
 }

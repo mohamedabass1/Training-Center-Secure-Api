@@ -45,7 +45,7 @@ namespace TrainingCenter.Infrastructure.Configurations
 
             // One manager can manage many instructors
             builder.HasOne(d => d.Manager)
-                      .WithMany(p => p.InverseManager)
+                      .WithMany(p => p.Subordinates)
                       .HasForeignKey(d => d.ManagerId)
                       .HasConstraintName("FK_Instructors_Manager");
 

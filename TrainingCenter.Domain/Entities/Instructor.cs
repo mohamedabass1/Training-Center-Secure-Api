@@ -16,7 +16,7 @@
         public ICollection<Course> Courses { get; set; } = new List<Course>();
 
         // Collection of instructors managed by this instructor.
-        public ICollection<Instructor> InverseManager { get; set; } = new List<Instructor>();
+        public ICollection<Instructor> Subordinates { get; set; } = new List<Instructor>();
 
         // Points to this instructor's manager.
         public Instructor? Manager { get; set; }
