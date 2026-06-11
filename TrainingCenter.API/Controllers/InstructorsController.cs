@@ -22,10 +22,10 @@ namespace TrainingCenter.API.Controllers
         // ============================================
 
         [HttpGet]
+        [EndpointSummary("Retrieves all instructors.")]
         [ProducesResponseType(typeof(List<InstructorDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
 
-        [EndpointSummary("Retrieves all instructors.")]
         public async Task<ActionResult<List<InstructorDto>>> GetAll()
         {
             var instructors = await _instructorService.GetAllAsync();
@@ -34,14 +34,15 @@ namespace TrainingCenter.API.Controllers
         }
 
 
-        [HttpGet("{id:int}")]
+        [HttpGet("{id:int:min(1)}")]
+        [EndpointSummary("Retrieves an instructor by ID.")]
         [ProducesResponseType(typeof(InstructorDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
 
-        [EndpointSummary("Retrieves an instructor by ID.")]
         public async Task<ActionResult<InstructorDto>> GetById(int id)
         {
+
             var instructor = await _instructorService.GetByIdAsync(id);
 
             return Ok(instructor);
@@ -49,12 +50,12 @@ namespace TrainingCenter.API.Controllers
 
 
         [HttpPost]
+        [EndpointSummary("Creates a new instructor.")]
         [ProducesResponseType(typeof(InstructorDto), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
 
-        [EndpointSummary("Creates a new instructor.")]
         public async Task<ActionResult<InstructorDto>> Create(CreateInstructorDto dto)
         {
             var instructor = await _instructorService.CreateAsync(dto);
@@ -66,7 +67,8 @@ namespace TrainingCenter.API.Controllers
         }
 
 
-        [HttpPut("{id:int}")]
+        [HttpPut("{id:int:min(1)}")]
+        [EndpointSummary("Updates an existing instructor.")]
         [ProducesResponseType(typeof(InstructorDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
@@ -74,7 +76,6 @@ namespace TrainingCenter.API.Controllers
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
 
 
-        [EndpointSummary("Updates an existing instructor.")]
         public async Task<ActionResult<InstructorDto>> Update(int id, UpdateInstructorDto dto)
         {
             var instructor = await _instructorService.UpdateAsync(id, dto);
@@ -83,13 +84,13 @@ namespace TrainingCenter.API.Controllers
         }
 
 
-        [HttpDelete("{id:int}")]
+        [HttpDelete("{id:int:min(1)}")]
+        [EndpointSummary("Deletes an instructor by ID.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
 
-        [EndpointSummary("Deletes an instructor by ID.")]
         public async Task<IActionResult> Delete(int id)
         {
             await _instructorService.DeleteAsync(id);
@@ -103,10 +104,10 @@ namespace TrainingCenter.API.Controllers
         // ============================================
 
         [HttpGet("active")]
+        [EndpointSummary("Retrieves all active instructors.")]
         [ProducesResponseType(typeof(List<InstructorDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
 
-        [EndpointSummary("Retrieves all active instructors.")]
         public async Task<ActionResult<List<InstructorDto>>> GetActive()
         {
             var instructors = await _instructorService.GetActiveInstructorsAsync();
@@ -116,10 +117,10 @@ namespace TrainingCenter.API.Controllers
 
 
         [HttpGet("inactive")]
+        [EndpointSummary("Retrieves all inactive instructors.")]
         [ProducesResponseType(typeof(List<InstructorDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
 
-        [EndpointSummary("Retrieves all inactive instructors.")]
         public async Task<ActionResult<List<InstructorDto>>> GetInactive()
         {
             var instructors = await _instructorService.GetInactiveInstructorsAsync();
@@ -128,12 +129,12 @@ namespace TrainingCenter.API.Controllers
         }
 
 
-        [HttpPatch("{id:int}/activate")]
+        [HttpPatch("{id:int:min(1)}/activate")]
+        [EndpointSummary("Activates an instructor.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
 
-        [EndpointSummary("Activates an instructor.")]
         public async Task<IActionResult> Activate(int id)
         {
             await _instructorService.ActivateAsync(id);
@@ -142,12 +143,12 @@ namespace TrainingCenter.API.Controllers
         }
 
 
-        [HttpPatch("{id:int}/deactivate")]
+        [HttpPatch("{id:int:min(1)}/deactivate")]
+        [EndpointSummary("Deactivates an instructor.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
 
-        [EndpointSummary("Deactivates an instructor.")]
         public async Task<IActionResult> Deactivate(int id)
         {
             await _instructorService.DeactivateAsync(id);
@@ -160,13 +161,13 @@ namespace TrainingCenter.API.Controllers
         //          Manager Operations
         // ============================================
 
-        [HttpGet("{id:int}/manager")]
+        [HttpGet("{id:int:min(1)}/manager")]
+        [EndpointSummary("Retrieves the manager assigned to an instructor.")]
         [ProducesResponseType(typeof(InstructorDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
 
-        [EndpointSummary("Retrieves the manager assigned to an instructor.")]
         public async Task<ActionResult<InstructorDto>> GetManager(int id)
         {
             var manager = await _instructorService.GetManagerAsync(id);
@@ -175,13 +176,13 @@ namespace TrainingCenter.API.Controllers
         }
 
 
-        [HttpPatch("{id:int}/manager")]
+        [HttpPatch("{id:int:min(1)}/manager")]
+        [EndpointSummary("Assigns or removes a manager for an instructor.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
 
-        [EndpointSummary("Assigns or removes a manager for an instructor.")]
         public async Task<IActionResult> AssignManager(int id, [FromBody] int? managerId)
         {
             await _instructorService.AssignManagerAsync(id, managerId);
@@ -189,12 +190,12 @@ namespace TrainingCenter.API.Controllers
             return NoContent();
         }
 
-        [HttpGet("{id:int}/subordinates")]
+        [HttpGet("{id:int:min(1)}/subordinates")]
+        [EndpointSummary("Retrieves all instructors managed by the specified instructor.")]
         [ProducesResponseType(typeof(List<InstructorDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
 
-        [EndpointSummary("Retrieves all instructors managed by the specified instructor.")]
         public async Task<ActionResult<List<InstructorDto>>> GetSubordinates(int id)
         {
             var subordinates = await _instructorService.GetSubordinatesAsync(id);

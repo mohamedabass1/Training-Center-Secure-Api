@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using FluentValidation;
+using System.Text.Json;
 using TrainingCenter.Application.Exceptions;
 
 namespace TrainingCenter.API.Common
@@ -51,10 +52,16 @@ namespace TrainingCenter.API.Common
                     message = exception.Message;
                     break;
 
+                case ValidationException validationException:
+                    statusCode = StatusCodes.Status400BadRequest;
+
+                    message = validationException.Message;
+
+                    break;
 
                 default:
                     statusCode = StatusCodes.Status500InternalServerError;
-                    message = "An unexpected error occurred.";
+                    message = exception.GetType().FullName!;
                     break;
             }
 
