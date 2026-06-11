@@ -6,7 +6,7 @@ using TrainingCenter.Application.Services;
 
 namespace TrainingCenter.API.Controllers
 {
-    [Route("api/Students")]
+    [Route("api/students")]
     [ApiController]
     public class StudentsController : ControllerBase
     {
@@ -199,7 +199,7 @@ namespace TrainingCenter.API.Controllers
         }
 
         [HttpPost("{id:int:min(1)}/profile")]
-        [EndpointSummary("Creates a new student profile.")]
+        [EndpointSummary("Creates a profile for a student.")]
         [ProducesResponseType(typeof(StudentProfileDto), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
@@ -230,7 +230,7 @@ namespace TrainingCenter.API.Controllers
 
 
         [HttpDelete("{id:int:min(1)}/profile")]
-        [EndpointSummary("Deletes a student profile by ID.")]
+        [EndpointSummary("Deletes the profile of a student.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]

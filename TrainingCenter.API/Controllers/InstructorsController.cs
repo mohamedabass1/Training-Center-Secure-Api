@@ -6,7 +6,7 @@ using TrainingCenter.Application.Services;
 namespace TrainingCenter.API.Controllers
 {
     [ApiController]
-    [Route("api/Instructors")]
+    [Route("api/instructors")]
     public class InstructorsController : ControllerBase
     {
         private readonly InstructorService _instructorService;
