@@ -14,7 +14,6 @@ namespace TrainingCenter.Application.DTOs.Courses
         public decimal Price { get; set; }
 
         public CourseLevel Level { get; set; }
-        public CourseStatus Status { get; set; }
         public int DurationHours { get; set; }
 
         public int InstructorId { get; set; }

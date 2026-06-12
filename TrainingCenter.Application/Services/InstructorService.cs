@@ -1,6 +1,7 @@
 ﻿
 
 using Microsoft.EntityFrameworkCore;
+using TrainingCenter.Application.DTOs.Courses;
 using TrainingCenter.Application.DTOs.Instructors;
 using TrainingCenter.Application.Exceptions;
 using TrainingCenter.Domain.Entities;
@@ -178,6 +179,35 @@ namespace TrainingCenter.Application.Services
             _context.Instructors.Remove(instructor);
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<CourseDto>> GetInstructorCoursesAsync(int instructorId)
+        {
+            var instructor = await _context.Instructors
+                .AsNoTracking()
+                .Include(i => i.Courses)
+                .FirstOrDefaultAsync(i => i.InstructorId == instructorId);
+
+            if (instructor is null)
+                throw new NotFoundException($"Instructor with id {instructorId} not found.");
+
+            return instructor.Courses
+                .OrderByDescending(c => c.CourseId)
+                .Select(c => new CourseDto
+                {
+                    CourseId = c.CourseId,
+                    Title = c.Title,
+                    Code = c.Code,
+                    Description = c.Description,
+                    Price = c.Price,
+                    Level = c.Level,
+                    Status = c.Status,
+                    DurationHours = c.DurationHours,
+                    CreatedAt = c.CreatedAt,
+                    PublishedAt = c.PublishedAt,
+                    InstructorId = c.InstructorId
+                })
+                .ToList();
         }
 
         // ============================================

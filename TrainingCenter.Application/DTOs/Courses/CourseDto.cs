@@ -25,7 +25,6 @@ namespace TrainingCenter.Application.DTOs.Courses
 
         public int InstructorId { get; set; }
 
-        public string InstructorName { get; set; } = null!;
     }
 
 }

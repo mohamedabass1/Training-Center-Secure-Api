@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TrainingCenter.API.Common;
+using TrainingCenter.Application.DTOs.Courses;
 using TrainingCenter.Application.DTOs.Instructors;
 using TrainingCenter.Application.Services;
 
@@ -96,6 +97,18 @@ namespace TrainingCenter.API.Controllers.InstructorControllers
         }
 
 
+
+        [HttpGet("{id:int:min(1)}/courses")]
+        [EndpointSummary("Retrieves all courses assigned to an instructor.")]
+        [ProducesResponseType(typeof(List<CourseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<List<CourseDto>>> GetCourses(int id)
+        {
+            var courses = await _instructorService.GetInstructorCoursesAsync(id);
+
+            return Ok(courses);
+        }
     }
 
 }
