@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TrainingCenter.API.Common;
+using TrainingCenter.Application.DTOs.Enrollments;
 using TrainingCenter.Application.DTOs.Students;
 using TrainingCenter.Application.Services;
 
@@ -89,6 +90,21 @@ namespace TrainingCenter.API.Controllers.StudentControllers
             await _studentService.DeleteAsync(id);
 
             return NoContent();
+        }
+
+
+
+        [HttpGet("{id:int:min(1)}/enrollments")]
+        [EndpointSummary("Retrieves all enrollments for a specific student.")]
+        [ProducesResponseType(typeof(List<EnrollmentDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<List<EnrollmentDto>>> GetEnrollments(int id)
+        {
+            var enrollments = await _studentService
+                .GetStudentEnrollmentsAsync(id);
+
+            return Ok(enrollments);
         }
 
     }

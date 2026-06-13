@@ -183,31 +183,34 @@ namespace TrainingCenter.Application.Services
 
         public async Task<List<CourseDto>> GetInstructorCoursesAsync(int instructorId)
         {
-            var instructor = await _context.Instructors
+            var exists = await _context.Instructors
                 .AsNoTracking()
-                .Include(i => i.Courses)
-                .FirstOrDefaultAsync(i => i.InstructorId == instructorId);
+                .AnyAsync(i => i.InstructorId == instructorId);
 
-            if (instructor is null)
+            if (!exists)
                 throw new NotFoundException($"Instructor with id {instructorId} not found.");
 
-            return instructor.Courses
-                .OrderByDescending(c => c.CourseId)
-                .Select(c => new CourseDto
-                {
-                    CourseId = c.CourseId,
-                    Title = c.Title,
-                    Code = c.Code,
-                    Description = c.Description,
-                    Price = c.Price,
-                    Level = c.Level,
-                    Status = c.Status,
-                    DurationHours = c.DurationHours,
-                    CreatedAt = c.CreatedAt,
-                    PublishedAt = c.PublishedAt,
-                    InstructorId = c.InstructorId
-                })
-                .ToList();
+            var courses = await _context.Courses
+                     .AsNoTracking()
+                     .Where(c => c.InstructorId == instructorId)
+                     .OrderByDescending(c => c.CourseId)
+                     .Select(c => new CourseDto
+                     {
+                         CourseId = c.CourseId,
+                         Title = c.Title,
+                         Code = c.Code,
+                         Description = c.Description,
+                         Price = c.Price,
+                         Level = c.Level,
+                         Status = c.Status,
+                         DurationHours = c.DurationHours,
+                         CreatedAt = c.CreatedAt,
+                         PublishedAt = c.PublishedAt,
+                         InstructorId = c.InstructorId
+                     })
+                  .ToListAsync();
+
+            return courses;
         }
 
         // ============================================
@@ -215,6 +218,7 @@ namespace TrainingCenter.Application.Services
         // ============================================
         public async Task<List<InstructorDto>> GetInactiveInstructorsAsync()
         {
+
             return await _context.Instructors
                 .AsNoTracking()
                 .Where(i => !i.IsActive)

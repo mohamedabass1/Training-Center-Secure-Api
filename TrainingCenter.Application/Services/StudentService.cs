@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TrainingCenter.Application.DTOs.Enrollments;
 using TrainingCenter.Application.DTOs.StudentProfiles;
 using TrainingCenter.Application.DTOs.Students;
 using TrainingCenter.Application.Exceptions;
@@ -216,6 +217,7 @@ namespace TrainingCenter.Application.Services
 
 
 
+
         // ============================================
         //           Profile Operations
         // ============================================
@@ -330,6 +332,42 @@ namespace TrainingCenter.Application.Services
         }
 
 
+        //////
+        ///
+        public async Task<List<EnrollmentDto>> GetStudentEnrollmentsAsync(int studentId)
+        {
+            bool studentExists = await _context.Students
+                .AsNoTracking()
+                .AnyAsync(s => s.StudentId == studentId);
+
+            if (!studentExists)
+                throw new NotFoundException(
+                    $"Student with id {studentId} not found.");
+
+
+            var enrollments = await _context.Enrollments
+                .AsNoTracking()
+                .Where(e => e.StudentId == studentId)
+                .OrderByDescending(e => e.EnrollmentId)
+                .Select(e => new EnrollmentDto
+                {
+                    EnrollmentId = e.EnrollmentId,
+                    StudentId = e.StudentId,
+                    StudentName = e.Student.FirstName + " " + e.Student.LastName,
+                    CourseId = e.CourseId,
+                    CourseTitle = e.Course.Title,
+                    EnrollmentDate = e.EnrollmentDate,
+                    CompletionDate = e.CompletionDate,
+                    ProgressPercent = e.ProgressPercent,
+                    FinalGrade = e.FinalGrade,
+                    Status = e.Status
+                }
+                 ).ToListAsync();
+
+            return enrollments;
+
+
+        }
 
     }
 }

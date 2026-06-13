@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TrainingCenter.API.Common;
 using TrainingCenter.Application.DTOs.Courses;
+using TrainingCenter.Application.DTOs.Enrollments;
 using TrainingCenter.Application.DTOs.Instructors;
 using TrainingCenter.Application.Services;
 
@@ -128,6 +129,21 @@ namespace TrainingCenter.API.Controllers.CourseControllers
             await _courseService.ChangeInstructorAsync(id, dto.InstructorId);
 
             return NoContent();
+        }
+
+
+
+        [HttpGet("courses/{id:int:min(1)}/enrollments")]
+        [EndpointSummary("Retrieves all enrollments for a specific course.")]
+        [ProducesResponseType(typeof(List<EnrollmentDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<List<EnrollmentDto>>> GetCourseEnrollments(int id)
+        {
+            var enrollments = await _courseService
+                .GetCourseEnrollmentsAsync(id);
+
+            return Ok(enrollments);
         }
 
 

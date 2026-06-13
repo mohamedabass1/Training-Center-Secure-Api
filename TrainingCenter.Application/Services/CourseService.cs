@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.EntityFrameworkCore;
 using TrainingCenter.Application.DTOs.Courses;
+using TrainingCenter.Application.DTOs.Enrollments;
 using TrainingCenter.Application.DTOs.Instructors;
 using TrainingCenter.Application.Exceptions;
 using TrainingCenter.Domain.Entities;
@@ -402,5 +403,35 @@ namespace TrainingCenter.Application.Services
 
         }
 
+        public async Task<List<EnrollmentDto>> GetCourseEnrollmentsAsync(int courseId)
+        {
+            bool courseExists = await _context.Courses
+                .AsNoTracking()
+                .AnyAsync(c => c.CourseId == courseId);
+
+            if (!courseExists)
+                throw new NotFoundException(
+                    $"Course with id {courseId} not found.");
+
+
+            return await _context.Enrollments
+                .AsNoTracking()
+                .Where(e => e.CourseId == courseId)
+                .OrderByDescending(e => e.EnrollmentId)
+                .Select(e => new EnrollmentDto
+                {
+                    EnrollmentId = e.EnrollmentId,
+                    StudentId = e.StudentId,
+                    StudentName = e.Student.FirstName + " " + e.Student.LastName,
+                    CourseId = e.CourseId,
+                    CourseTitle = e.Course.Title,
+                    EnrollmentDate = e.EnrollmentDate,
+                    CompletionDate = e.CompletionDate,
+                    ProgressPercent = e.ProgressPercent,
+                    FinalGrade = e.FinalGrade,
+                    Status = e.Status
+                })
+                .ToListAsync();
+        }
     }
 }
