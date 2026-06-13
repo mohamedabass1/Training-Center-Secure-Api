@@ -2,6 +2,11 @@
 
 namespace TrainingCenter.Domain.Entities
 {
+    /// <summary>
+    /// Represents a student's enrollment in a course, including progress and grading information.
+    /// </summary>
+    /// <remarks>Includes enrollment and completion dates, progress percentage, final grade, and navigation
+    /// properties to the associated student and course.</remarks>
     public class Enrollment
     {
         public int EnrollmentId { get; set; }

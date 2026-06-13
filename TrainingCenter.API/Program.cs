@@ -40,6 +40,7 @@ builder.Services.AddScoped<InstructorService>();
 
 builder.Services.AddScoped<StudentService>();
 builder.Services.AddScoped<CourseService>();
+builder.Services.AddScoped<EnrollmentService>();
 
 var app = builder.Build();
 
