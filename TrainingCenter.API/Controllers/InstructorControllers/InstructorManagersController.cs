@@ -1,13 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TrainingCenter.API.Common;
 using TrainingCenter.Application.DTOs.Instructors;
 using TrainingCenter.Application.Services;
 
 namespace TrainingCenter.API.Controllers.InstructorControllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/instructors")]
-    [Tags("03. Instructor Managers")]
+    [Tags("04. Instructor Managers")]
     public class InstructorManagersController : ControllerBase
     {
 

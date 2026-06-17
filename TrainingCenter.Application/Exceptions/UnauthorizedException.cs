@@ -1,9 +1,9 @@
 ﻿
 namespace TrainingCenter.Application.Exceptions
 {
-    public class ConflictException : AppException
+    public class UnauthorizedException : AppException
     {
-        public ConflictException(string message)
+        public UnauthorizedException(string message)
             : base(message)
         {
         }

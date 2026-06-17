@@ -52,12 +52,22 @@ namespace TrainingCenter.API.Common
                     message = exception.Message;
                     break;
 
+
+                case UnauthorizedException:
+                    statusCode = StatusCodes.Status401Unauthorized;
+                    message = exception.Message;
+                    break;
+
+
+
                 case ValidationException validationException:
                     statusCode = StatusCodes.Status400BadRequest;
 
                     message = validationException.Message;
 
                     break;
+
+
 
                 default:
                     statusCode = StatusCodes.Status500InternalServerError;

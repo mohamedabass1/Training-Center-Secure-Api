@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TrainingCenter.API.Common;
 using TrainingCenter.Application.DTOs.Courses;
 using TrainingCenter.Application.DTOs.Instructors;
@@ -6,9 +7,10 @@ using TrainingCenter.Application.Services;
 
 namespace TrainingCenter.API.Controllers.InstructorControllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/instructors")]
-    [Tags("01. Instructors")]
+    [Tags("02. Instructors")]
     public class InstructorsController : ControllerBase
     {
         private readonly InstructorService _instructorService;

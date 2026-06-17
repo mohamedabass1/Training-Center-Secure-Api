@@ -1,12 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TrainingCenter.API.Common;
 using TrainingCenter.Application.DTOs.StudentProfiles;
 using TrainingCenter.Application.Services;
 
 namespace TrainingCenter.API.Controllers.StudentControllers
 {
+    [Authorize]
     [Route("api/students")]
-    [Tags("06. Student Profiles")]
+    [Tags("07. Student Profiles")]
     [ApiController]
     public class StudentProfilesController : ControllerBase
     {

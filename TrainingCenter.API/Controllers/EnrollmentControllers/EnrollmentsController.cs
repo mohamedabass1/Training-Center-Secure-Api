@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TrainingCenter.API.Common;
 using TrainingCenter.Application.DTOs.Enrollments;
 using TrainingCenter.Application.Services;
 
 namespace TrainingCenter.API.Controllers.EnrollmentControllers
 {
+    [Authorize]
     [Route("api/enrollments")]
     [ApiController]
     public class EnrollmentsController : ControllerBase
@@ -139,12 +141,8 @@ namespace TrainingCenter.API.Controllers.EnrollmentControllers
 
         [HttpGet("statistics")]
         [EndpointSummary("Retrieves enrollment statistics.")]
-        [ProducesResponseType(
-            typeof(EnrollmentStatisticsDto),
-            StatusCodes.Status200OK)]
-        [ProducesResponseType(
-            typeof(ErrorResponse),
-            StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(typeof(EnrollmentStatisticsDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<EnrollmentStatisticsDto>> GetStatistics()
         {
             var statistics =

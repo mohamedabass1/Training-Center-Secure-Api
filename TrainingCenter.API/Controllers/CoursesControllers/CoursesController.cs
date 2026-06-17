@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TrainingCenter.API.Common;
 using TrainingCenter.Application.DTOs.Courses;
 using TrainingCenter.Application.DTOs.Enrollments;
@@ -7,9 +8,10 @@ using TrainingCenter.Application.Services;
 
 namespace TrainingCenter.API.Controllers.CourseControllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/courses")]
-    [Tags("07. Courses")]
+    [Tags("08. Courses")]
     public class CoursesController : ControllerBase
     {
         private readonly CourseService _courseService;

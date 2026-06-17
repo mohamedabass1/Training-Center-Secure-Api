@@ -7,7 +7,7 @@ namespace TrainingCenter.API.Controllers.CourseControllers
 {
     [ApiController]
     [Route("api/courses")]
-    [Tags("08. Course Filters")]
+    [Tags("09. Course Filters")]
     public class CourseFiltersController : ControllerBase
     {
         private readonly CourseService _courseService;
