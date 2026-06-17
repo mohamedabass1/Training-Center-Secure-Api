@@ -19,10 +19,7 @@ namespace TrainingCenter.Application.Validators.Instructors
                 .NotEmpty()
                 .MaximumLength(50);
 
-            RuleFor(x => x.Email)
-                .NotEmpty()
-                .EmailAddress()
-                .MaximumLength(150);
+
 
             RuleFor(x => x.Salary)
                 .GreaterThanOrEqualTo(0);

@@ -357,27 +357,26 @@ namespace TrainingCenter.Application.Services
 
         public async Task<InstructorDto> GetCourseInstructorAsync(int courseId)
         {
-            var instructor = await _context.Courses
+            InstructorDto? instructor = await _context.Courses
                 .AsNoTracking()
                 .Where(c => c.CourseId == courseId)
-                .Select(c => c.Instructor)
+                .Select(c => new InstructorDto
+                {
+                    InstructorId = c.Instructor.InstructorId,
+                    FullName = c.Instructor.FirstName + " " + c.Instructor.LastName,
+                    Email = c.Instructor.User.Email,
+                    HireDate = c.Instructor.HireDate,
+                    Salary = c.Instructor.Salary,
+                    IsActive = c.Instructor.IsActive,
+                    ManagerId = c.Instructor.ManagerId
+                })
                 .FirstOrDefaultAsync();
 
             if (instructor is null)
-                throw new NotFoundException($"Course with id {courseId} not found.");
+                throw new NotFoundException(
+                    $"Course with id {courseId} not found.");
 
-
-
-            return new InstructorDto
-            {
-                InstructorId = instructor.InstructorId,
-                FullName = $"{instructor.FirstName} {instructor.LastName}",
-                Email = instructor.Email,
-                HireDate = instructor.HireDate,
-                Salary = instructor.Salary,
-                IsActive = instructor.IsActive,
-                ManagerId = instructor.ManagerId,
-            };
+            return instructor;
         }
         public async Task ChangeInstructorAsync(int courseId, int instructorId)
         {

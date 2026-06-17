@@ -16,6 +16,9 @@ namespace TrainingCenter.Application.Validators.Students
                 .NotEmpty()
                 .MaximumLength(50);
 
+            RuleFor(x => x.Password)
+                .NotEmpty();
+
 
             RuleFor(x => x.Email)
                 .NotEmpty()

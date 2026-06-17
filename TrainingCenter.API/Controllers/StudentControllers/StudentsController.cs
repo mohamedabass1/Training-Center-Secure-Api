@@ -67,7 +67,6 @@ namespace TrainingCenter.API.Controllers.StudentControllers
         [EndpointSummary("Updates an existing student.")]
         [ProducesResponseType(typeof(StudentDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<StudentDto>> Update(int id, UpdateStudentDto dto)

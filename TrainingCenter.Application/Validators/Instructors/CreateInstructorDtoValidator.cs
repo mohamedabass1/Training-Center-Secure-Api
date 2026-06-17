@@ -25,6 +25,9 @@ namespace TrainingCenter.Application.Validators.Instructors
                 .EmailAddress()
                 .MaximumLength(150);
 
+            RuleFor(x => x.Password)
+                .NotEmpty();
+
             RuleFor(x => x.HireDate)
                 .NotEmpty()
                 .LessThanOrEqualTo(DateOnly.FromDateTime(DateTime.Today))

@@ -6,22 +6,27 @@ namespace TrainingCenter.Infrastructure.Configurations
 {
     public class StudentConfiguration : IEntityTypeConfiguration<Student>
     {
+
         public void Configure(EntityTypeBuilder<Student> builder)
         {
+            builder.ToTable("Students");
+
             builder.HasKey(e => e.StudentId);
 
             builder.HasIndex(e => e.Status, "IX_Students_Status");
 
-            // Email unique
-            builder.HasIndex(e => e.Email, "UQ_Students_Email")
-                  .IsUnique();
 
 
-            builder.Property(e => e.Email).HasMaxLength(150).IsRequired();
+            builder.HasIndex(x => x.UserId)
+                .IsUnique();
+
             builder.Property(e => e.FirstName).HasMaxLength(50).IsRequired();
             builder.Property(e => e.LastName).HasMaxLength(50).IsRequired();
             builder.Property(e => e.PhoneNumber).HasMaxLength(30);
 
+            builder.Property(e => e.DateOfBirth)
+                .HasColumnType("date")
+                .IsRequired();
 
             // Registration date defaults to now
             builder.Property(e => e.RegisteredAt)
@@ -34,6 +39,19 @@ namespace TrainingCenter.Infrastructure.Configurations
                 .HasConversion<string>()
                 .HasMaxLength(20)
                 .IsRequired();
+
+            builder.ToTable(t =>
+            {
+                t.HasCheckConstraint(
+                    "CK_Students_Status",
+                    "[Status] IN ('Active','Suspended','Graduated')");
+            });
+
+
+            builder.HasOne(x => x.User)
+                .WithOne(x => x.Student)
+                .HasForeignKey<Student>(x => x.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

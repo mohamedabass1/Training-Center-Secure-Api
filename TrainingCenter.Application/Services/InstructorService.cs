@@ -1,10 +1,12 @@
 ﻿
 
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 using TrainingCenter.Application.DTOs.Courses;
 using TrainingCenter.Application.DTOs.Instructors;
 using TrainingCenter.Application.Exceptions;
 using TrainingCenter.Domain.Entities;
+using TrainingCenter.Domain.Enums;
 using TrainingCenter.Infrastructure.Context;
 
 namespace TrainingCenter.Application.Services
@@ -17,13 +19,24 @@ namespace TrainingCenter.Application.Services
             _context = context;
         }
 
+        private static readonly Expression<Func<Instructor, InstructorDto>>
+                                InstructorSelector = i => new InstructorDto
+                                {
+                                    InstructorId = i.InstructorId,
+                                    FullName = i.FirstName + " " + i.LastName,
+                                    Email = i.User.Email,
+                                    HireDate = i.HireDate,
+                                    Salary = i.Salary,
+                                    IsActive = i.IsActive,
+                                    ManagerId = i.ManagerId
+                                };
         private InstructorDto ToDto(Instructor instructor)
         {
             return new InstructorDto
             {
                 InstructorId = instructor.InstructorId,
                 FullName = $"{instructor.FirstName} {instructor.LastName}",
-                Email = instructor.Email,
+                Email = instructor.User.Email,
                 HireDate = instructor.HireDate,
                 Salary = instructor.Salary,
                 IsActive = instructor.IsActive,
@@ -32,13 +45,6 @@ namespace TrainingCenter.Application.Services
 
         }
 
-        private async Task<bool> IsEmailExists(string email, int? excludedInstructorId = null)
-        {
-            return await _context.Instructors
-                .AnyAsync(i =>
-                    i.Email.ToLower() == email.ToLower() &&
-                    i.InstructorId != excludedInstructorId);
-        }
         private async Task<bool> IsManagerExists(int? ManagerId)
         {
             if (!ManagerId.HasValue || ManagerId <= 0)
@@ -54,8 +60,8 @@ namespace TrainingCenter.Application.Services
         public async Task<InstructorDto> CreateAsync(CreateInstructorDto dto)
         {
 
-
-            bool emailExists = await IsEmailExists(dto.Email);
+            bool emailExists = await _context.Users
+               .AnyAsync(u => u.Email == dto.Email);
 
             if (emailExists)
                 throw new ConflictException("Email already exists.");
@@ -63,55 +69,54 @@ namespace TrainingCenter.Application.Services
 
             if (dto.ManagerId.HasValue)
             {
-
                 bool managerExists = await IsManagerExists(dto.ManagerId);
 
                 if (!managerExists)
                     throw new NotFoundException("Manager not found.");
             }
 
+            User user = new User
+            {
+                Email = dto.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                Role = UserRole.Instructor
+            };
+
 
             Instructor instructor = new Instructor
             {
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
-                Email = dto.Email,
                 HireDate = dto.HireDate,
                 Salary = dto.Salary,
                 ManagerId = dto.ManagerId,
-                IsActive = dto.IsActive
+                IsActive = dto.IsActive,
+                User = user
+
             };
 
-
             _context.Instructors.Add(instructor);
+
             await _context.SaveChangesAsync();
 
             return ToDto(instructor);
-
         }
 
         public async Task<List<InstructorDto>> GetAllAsync()
         {
             return await _context.Instructors
                 .AsNoTracking()
-                .OrderBy(i => i.InstructorId)
-                .Select(i => new InstructorDto
-                {
-                    InstructorId = i.InstructorId,
-                    FullName = i.FirstName + " " + i.LastName,
-                    Email = i.Email,
-                    HireDate = i.HireDate,
-                    Salary = i.Salary,
-                    IsActive = i.IsActive,
-                    ManagerId = i.ManagerId,
-                })
+                .OrderByDescending(i => i.InstructorId)
+                .Select(InstructorSelector)
                 .ToListAsync();
         }
 
 
         public async Task<InstructorDto> UpdateAsync(int instructorId, UpdateInstructorDto dto)
         {
-            Instructor? instructor = await _context.Instructors.FindAsync(instructorId);
+            Instructor? instructor = await _context.Instructors
+                .Include(i => i.User)
+                .FirstOrDefaultAsync(i => i.InstructorId == instructorId);
 
             if (instructor is null)
                 throw new NotFoundException("Instructor not found.");
@@ -129,15 +134,16 @@ namespace TrainingCenter.Application.Services
                     throw new NotFoundException("Manager not found.");
             }
 
-            bool emailExists = await IsEmailExists(dto.Email, instructorId);
+            // if the user dose not update the password
+            if (!string.IsNullOrWhiteSpace(dto.Password))
+            {
+                instructor.User.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+            }
 
-            if (emailExists)
-                throw new ConflictException("Email already exists.");
 
 
             instructor.FirstName = dto.FirstName;
             instructor.LastName = dto.LastName;
-            instructor.Email = dto.Email;
             instructor.Salary = dto.Salary;
             instructor.ManagerId = dto.ManagerId;
             instructor.IsActive = dto.IsActive;
@@ -150,21 +156,24 @@ namespace TrainingCenter.Application.Services
 
         public async Task<InstructorDto> GetByIdAsync(int instructorId)
         {
-            Instructor? instructor = await _context.Instructors
+            InstructorDto? instructor = await _context.Instructors
                 .AsNoTracking()
-                .FirstOrDefaultAsync(i => i.InstructorId == instructorId);
+                .Where(i => i.InstructorId == instructorId)
+                .Select(InstructorSelector)
+                .FirstOrDefaultAsync();
 
             if (instructor is null)
                 throw new NotFoundException("Instructor not found.");
 
 
-            return ToDto(instructor);
+            return instructor;
         }
 
         public async Task DeleteAsync(int instructorId)
         {
             Instructor? instructor = await _context.Instructors
-                .FindAsync(instructorId);
+                .Include(i => i.User)
+                .FirstOrDefaultAsync(i => i.InstructorId == instructorId);
 
             if (instructor is null)
                 throw new NotFoundException("Instructor not found.");
@@ -176,6 +185,7 @@ namespace TrainingCenter.Application.Services
             if (hasCourses)
                 throw new BadRequestException("Cannot delete instructor with assigned courses.");
 
+            _context.Users.Remove(instructor.User);
             _context.Instructors.Remove(instructor);
 
             await _context.SaveChangesAsync();
@@ -222,17 +232,8 @@ namespace TrainingCenter.Application.Services
             return await _context.Instructors
                 .AsNoTracking()
                 .Where(i => !i.IsActive)
-                .OrderBy(i => i.InstructorId)
-                .Select(i => new InstructorDto
-                {
-                    InstructorId = i.InstructorId,
-                    FullName = i.FirstName + " " + i.LastName,
-                    Email = i.Email,
-                    HireDate = i.HireDate,
-                    Salary = i.Salary,
-                    IsActive = i.IsActive,
-                    ManagerId = i.ManagerId,
-                })
+                .OrderByDescending(i => i.InstructorId)
+                .Select(InstructorSelector)
                 .ToListAsync();
         }
         public async Task<List<InstructorDto>> GetActiveInstructorsAsync()
@@ -240,48 +241,32 @@ namespace TrainingCenter.Application.Services
             return await _context.Instructors
                 .AsNoTracking()
                 .Where(i => i.IsActive)
-                .OrderBy(i => i.InstructorId)
-                .Select(i => new InstructorDto
-                {
-                    InstructorId = i.InstructorId,
-                    FullName = i.FirstName + " " + i.LastName,
-                    Email = i.Email,
-                    HireDate = i.HireDate,
-                    Salary = i.Salary,
-                    IsActive = i.IsActive,
-                    ManagerId = i.ManagerId,
-                })
+                .OrderByDescending(i => i.InstructorId)
+                .Select(InstructorSelector)
                 .ToListAsync();
         }
 
-        public async Task ActivateAsync(int instructorId)
+        private async Task SetInstructorStatusAsync(int instructorId, bool isActive)
         {
             var instructor = await _context.Instructors
-                .FindAsync(instructorId);
+              .FindAsync(instructorId);
 
             if (instructor is null)
                 throw new NotFoundException("Instructor not found.");
 
 
-
-            instructor.IsActive = true;
+            instructor.IsActive = isActive;
 
             await _context.SaveChangesAsync();
+        }
+        public async Task ActivateAsync(int instructorId)
+        {
+            await SetInstructorStatusAsync(instructorId, true);
         }
 
         public async Task DeactivateAsync(int instructorId)
         {
-            var instructor = await _context.Instructors
-                .FindAsync(instructorId);
-
-            if (instructor is null)
-                throw new NotFoundException("Instructor not found.");
-
-
-
-            instructor.IsActive = false;
-
-            await _context.SaveChangesAsync();
+            await SetInstructorStatusAsync(instructorId, false);
         }
 
         // ============================================
@@ -344,17 +329,8 @@ namespace TrainingCenter.Application.Services
 
             return await _context.Instructors
                             .Where(i => i.ManagerId == managerId)
-                            .Select(i => new InstructorDto
-                            {
-                                InstructorId = i.InstructorId,
-                                FullName = i.FirstName + " " + i.LastName,
-                                Email = i.Email,
-                                HireDate = i.HireDate,
-                                Salary = i.Salary,
-                                IsActive = i.IsActive,
-                                ManagerId = i.ManagerId,
-                            })
-                         .ToListAsync();
+                            .Select(InstructorSelector)
+                            .ToListAsync();
         }
 
     }

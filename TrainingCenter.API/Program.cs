@@ -111,8 +111,7 @@ app.UseRouting();
 // CORS
 app.UseCors("TrainingCenterApiCrosPolicy");
 
-
-// Enable authorization middleware
+// Enable authorization middle-ware
 app.UseAuthorization();
 
 

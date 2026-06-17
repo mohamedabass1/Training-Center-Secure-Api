@@ -13,6 +13,7 @@ namespace TrainingCenter.Infrastructure.Context
         public DbSet<StudentProfile> StudentProfiles { get; set; }
         public DbSet<Course> Courses { get; set; }
         public DbSet<Enrollment> Enrollments { get; set; }
+        public DbSet<User> Users { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

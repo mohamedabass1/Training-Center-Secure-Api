@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 using TrainingCenter.Application.DTOs.Enrollments;
 using TrainingCenter.Application.DTOs.StudentProfiles;
 using TrainingCenter.Application.DTOs.Students;
@@ -24,7 +25,7 @@ namespace TrainingCenter.Application.Services
             {
                 StudentId = student.StudentId,
                 FullName = $"{student.FirstName} {student.LastName}",
-                Email = student.Email,
+                Email = student.User.Email,
                 DateOfBirth = student.DateOfBirth,
                 Status = student.Status,
                 PhoneNumber = student.PhoneNumber,
@@ -32,31 +33,25 @@ namespace TrainingCenter.Application.Services
             };
         }
 
-        private async Task<bool> IsEmailExists(string email, int? excludedStudentId = null)
-        {
-            return await _context.Students
-                .AnyAsync(s =>
-                    s.Email.ToLower() == email.ToLower() &&
-                    s.StudentId != excludedStudentId);
-        }
-
+        private static readonly Expression<Func<Student, StudentDto>>
+            StudentSelector = s => new StudentDto
+            {
+                StudentId = s.StudentId,
+                FullName = s.FirstName + " " + s.LastName,
+                Email = s.User.Email,
+                DateOfBirth = s.DateOfBirth,
+                Status = s.Status,
+                PhoneNumber = s.PhoneNumber,
+                RegisteredAt = s.RegisteredAt
+            };
         private async Task<List<StudentDto>> GetStudentsByStatusAsync(StudentStatus status)
         {
             return await _context.Students
                 .AsNoTracking()
                 .Where(s => s.Status == status)
                 .OrderBy(s => s.StudentId)
-                .Select(s => new StudentDto
-                {
-                    StudentId = s.StudentId,
-                    FullName = s.FirstName + " " + s.LastName,
-                    Email = s.Email,
-                    DateOfBirth = s.DateOfBirth,
-                    Status = s.Status,
-                    PhoneNumber = s.PhoneNumber,
-                    RegisteredAt = s.RegisteredAt
-                }
-                ).ToListAsync();
+                .Select(StudentSelector)
+                .ToListAsync();
         }
 
 
@@ -83,48 +78,49 @@ namespace TrainingCenter.Application.Services
         {
             return await _context.Students
                 .AsNoTracking()
-                .OrderBy(s => s.StudentId)
-                .Select(s => new StudentDto
-                {
-                    StudentId = s.StudentId,
-                    FullName = s.FirstName + " " + s.LastName,
-                    Email = s.Email,
-                    DateOfBirth = s.DateOfBirth,
-                    Status = s.Status,
-                    PhoneNumber = s.PhoneNumber,
-                    RegisteredAt = s.RegisteredAt
-                }
-                ).ToListAsync();
+                .OrderByDescending(s => s.StudentId)
+                .Select(StudentSelector)
+                .ToListAsync();
         }
 
         public async Task<StudentDto> GetByIdAsync(int studentId)
         {
-            Student? student = await _context.Students
-                            .AsNoTracking()
-                            .FirstOrDefaultAsync(s => s.StudentId == studentId);
+            StudentDto? student = await _context.Students
+                .AsNoTracking()
+                .Where(s => s.StudentId == studentId)
+                .Select(StudentSelector)
+                .FirstOrDefaultAsync();
 
             if (student is null)
                 throw new NotFoundException($"Student with id {studentId} not found");
 
-            return ToDto(student);
+
+            return student;
         }
 
         public async Task<StudentDto> CreateAsync(CreateStudentDto dto)
         {
-            bool emailExists = await IsEmailExists(dto.Email);
+            bool emailExists = await _context.Users
+                 .AnyAsync(u => u.Email == dto.Email);
 
             if (emailExists)
                 throw new ConflictException("Email already exists.");
 
+            User user = new User
+            {
+                Email = dto.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                Role = UserRole.Student
+            };
 
             Student student = new Student
             {
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
-                Email = dto.Email,
                 DateOfBirth = dto.DateOfBirth,
                 Status = dto.Status,
-                PhoneNumber = dto.PhoneNumber
+                PhoneNumber = dto.PhoneNumber,
+                User = user
             };
 
             _context.Students.Add(student);
@@ -137,31 +133,35 @@ namespace TrainingCenter.Application.Services
 
         public async Task<StudentDto> UpdateAsync(int studentId, UpdateStudentDto dto)
         {
-            Student? student = await _context.Students.FindAsync(studentId);
+            Student? student = await _context.Students
+                                         .Include(s => s.User)
+                                         .FirstOrDefaultAsync(s => s.StudentId == studentId);
 
             if (student is null)
                 throw new NotFoundException($"Student with id {studentId} not found");
 
-            bool emailExists = await IsEmailExists(dto.Email, studentId);
 
-            if (emailExists)
-                throw new ConflictException("Email already exists.");
+            // if the user dose not update the password
+            if (!string.IsNullOrWhiteSpace(dto.Password))
+            {
+                student.User.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+            }
 
             student.FirstName = dto.FirstName;
             student.LastName = dto.LastName;
-            student.Email = dto.Email;
             student.Status = dto.Status;
             student.PhoneNumber = dto.PhoneNumber;
 
             await _context.SaveChangesAsync();
 
-            return ToDto(student);
+            return ToDto(student); ;
         }
 
         public async Task DeleteAsync(int studentId)
         {
             Student? student = await _context.Students
-                .FindAsync(studentId);
+                                        .Include(s => s.User)
+                                        .FirstOrDefaultAsync(s => s.StudentId == studentId);
 
             if (student is null)
                 throw new NotFoundException($"Student with id {studentId} not found");
@@ -173,7 +173,7 @@ namespace TrainingCenter.Application.Services
             if (hasEnrollments)
                 throw new BadRequestException("Cannot delete student with assigned enrollments.");
 
-
+            _context.Users.Remove(student.User);
             _context.Students.Remove(student);
 
             await _context.SaveChangesAsync();
