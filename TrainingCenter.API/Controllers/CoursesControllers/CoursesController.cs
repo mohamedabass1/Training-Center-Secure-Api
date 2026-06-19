@@ -60,6 +60,8 @@ namespace TrainingCenter.API.Controllers.CourseControllers
         }
 
 
+        [Authorize(Roles = "Admin,Instructor")]
+
         [HttpPost]
         [EndpointSummary("Creates a new course.")]
         [ProducesResponseType(typeof(CourseDto), StatusCodes.Status201Created)]
@@ -78,6 +80,8 @@ namespace TrainingCenter.API.Controllers.CourseControllers
         }
 
 
+
+        [Authorize(Roles = "Admin,Instructor")]
         [HttpPut("{id:int:min(1)}")]
         [EndpointSummary("Updates an existing course.")]
         [ProducesResponseType(typeof(CourseDto), StatusCodes.Status200OK)]
@@ -93,6 +97,7 @@ namespace TrainingCenter.API.Controllers.CourseControllers
         }
 
 
+        [Authorize(Roles = "Admin,Instructor")]
         [HttpDelete("{id:int:min(1)}")]
         [EndpointSummary("Deletes a course by ID.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -120,6 +125,8 @@ namespace TrainingCenter.API.Controllers.CourseControllers
         }
 
 
+        [Authorize(Roles = "Admin,Instructor")]
+
         [HttpPatch("{id:int:min(1)}/instructor")]
         [EndpointSummary("Changes the instructor assigned to a course.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -134,7 +141,7 @@ namespace TrainingCenter.API.Controllers.CourseControllers
         }
 
 
-
+        [Authorize(Roles = "Admin,Instructor")]
         [HttpGet("courses/{id:int:min(1)}/enrollments")]
         [EndpointSummary("Retrieves all enrollments for a specific course.")]
         [ProducesResponseType(typeof(List<EnrollmentDto>), StatusCodes.Status200OK)]

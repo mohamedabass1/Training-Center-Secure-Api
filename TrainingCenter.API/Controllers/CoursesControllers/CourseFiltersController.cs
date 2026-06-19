@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TrainingCenter.API.Common;
 using TrainingCenter.Application.DTOs.Courses;
 using TrainingCenter.Application.Services;
@@ -18,6 +19,7 @@ namespace TrainingCenter.API.Controllers.CourseControllers
         }
 
 
+        [Authorize(Roles = "Admin,Instructor")]
 
         [HttpPatch("{id:int:min(1)}/publish")]
         [EndpointSummary("Publishes a course.")]
@@ -32,6 +34,8 @@ namespace TrainingCenter.API.Controllers.CourseControllers
         }
 
 
+        [Authorize(Roles = "Admin,Instructor")]
+
         [HttpPatch("{id:int:min(1)}/archive")]
         [EndpointSummary("Archives a course.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -44,6 +48,7 @@ namespace TrainingCenter.API.Controllers.CourseControllers
             return NoContent();
         }
 
+        [Authorize(Roles = "Admin,Instructor")]
 
         [HttpPatch("{id:int:min(1)}/unpublish")]
         [EndpointSummary("Moves a course back to draft status.")]
@@ -58,7 +63,7 @@ namespace TrainingCenter.API.Controllers.CourseControllers
         }
 
 
-
+        [AllowAnonymous]
         [HttpGet("published")]
         [EndpointSummary("Retrieves all published courses.")]
         [ProducesResponseType(typeof(List<CourseDto>), StatusCodes.Status200OK)]
@@ -67,6 +72,7 @@ namespace TrainingCenter.API.Controllers.CourseControllers
             => Ok(await _courseService.GetPublishedCoursesAsync());
 
 
+        [Authorize(Roles = "Admin,Instructor")]
         [HttpGet("draft")]
         [EndpointSummary("Retrieves all draft courses.")]
         [ProducesResponseType(typeof(List<CourseDto>), StatusCodes.Status200OK)]
@@ -74,6 +80,8 @@ namespace TrainingCenter.API.Controllers.CourseControllers
         public async Task<ActionResult<List<CourseDto>>> GetDraft()
             => Ok(await _courseService.GetDraftCoursesAsync());
 
+
+        [Authorize(Roles = "Admin,Instructor")]
 
         [HttpGet("archived")]
         [EndpointSummary("Retrieves all archived courses.")]
@@ -86,13 +94,14 @@ namespace TrainingCenter.API.Controllers.CourseControllers
 
 
         /// Level oration
-
+        [AllowAnonymous]
         [HttpGet("beginner")]
         [EndpointSummary("Retrieves all beginner courses.")]
         public async Task<ActionResult<List<CourseDto>>> GetBeginner()
         => Ok(await _courseService.GetBeginnerCoursesAsync());
 
 
+        [AllowAnonymous]
         [HttpGet("intermediate")]
         [EndpointSummary("Retrieves all intermediate courses.")]
         [ProducesResponseType(typeof(List<CourseDto>), StatusCodes.Status200OK)]
@@ -102,6 +111,7 @@ namespace TrainingCenter.API.Controllers.CourseControllers
             => Ok(await _courseService.GetIntermediateCoursesAsync());
 
 
+        [AllowAnonymous]
         [HttpGet("advanced")]
         [EndpointSummary("Retrieves all advanced courses.")]
 

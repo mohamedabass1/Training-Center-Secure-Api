@@ -18,6 +18,7 @@ namespace TrainingCenter.API.Controllers.StudentControllers
             _studentService = studentService;
         }
 
+        // --- Owner or Admin
         [HttpGet("{id:int:min(1)}/profile")]
         [EndpointSummary("Retrieves the profile of a student.")]
         [ProducesResponseType(typeof(StudentProfileDto), StatusCodes.Status200OK)]
@@ -30,6 +31,8 @@ namespace TrainingCenter.API.Controllers.StudentControllers
             return Ok(profile);
         }
 
+
+        // --- Owner or Admin
         [HttpPost("{id:int:min(1)}/profile")]
         [EndpointSummary("Creates a profile for a student.")]
         [ProducesResponseType(typeof(StudentProfileDto), StatusCodes.Status201Created)]
@@ -47,6 +50,7 @@ namespace TrainingCenter.API.Controllers.StudentControllers
         }
 
 
+        // --- Owner or Admin
         [HttpPut("{id:int:min(1)}/profile")]
         [EndpointSummary("Updates a student profile.")]
         [ProducesResponseType(typeof(StudentProfileDto), StatusCodes.Status200OK)]
@@ -61,6 +65,7 @@ namespace TrainingCenter.API.Controllers.StudentControllers
         }
 
 
+        // --- Owner or Admin
         [HttpDelete("{id:int:min(1)}/profile")]
         [EndpointSummary("Deletes the profile of a student.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

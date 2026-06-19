@@ -21,6 +21,8 @@ namespace TrainingCenter.API.Controllers.InstructorControllers
         }
 
 
+        // --- Instructor or Admin
+
         [HttpGet("{id:int:min(1)}/manager")]
         [EndpointSummary("Retrieves the manager assigned to an instructor.")]
         [ProducesResponseType(typeof(InstructorDto), StatusCodes.Status200OK)]
@@ -36,6 +38,7 @@ namespace TrainingCenter.API.Controllers.InstructorControllers
         }
 
 
+        [Authorize(Roles = "Admin")]
         [HttpPatch("{id:int:min(1)}/manager")]
         [EndpointSummary("Assigns or removes a manager for an instructor.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -50,6 +53,9 @@ namespace TrainingCenter.API.Controllers.InstructorControllers
             return NoContent();
         }
 
+
+
+        // --- Instructor or Admin
         [HttpGet("{id:int:min(1)}/subordinates")]
         [EndpointSummary("Retrieves all instructors managed by the specified instructor.")]
         [ProducesResponseType(typeof(List<InstructorDto>), StatusCodes.Status200OK)]

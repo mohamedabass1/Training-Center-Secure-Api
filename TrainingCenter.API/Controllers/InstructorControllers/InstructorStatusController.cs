@@ -22,11 +22,11 @@ namespace TrainingCenter.API.Controllers.InstructorControllers
 
 
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("active")]
         [EndpointSummary("Retrieves all active instructors.")]
         [ProducesResponseType(typeof(List<InstructorDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-
         public async Task<ActionResult<List<InstructorDto>>> GetActive()
         {
             var instructors = await _instructorService.GetActiveInstructorsAsync();
@@ -35,6 +35,7 @@ namespace TrainingCenter.API.Controllers.InstructorControllers
         }
 
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("inactive")]
         [EndpointSummary("Retrieves all inactive instructors.")]
         [ProducesResponseType(typeof(List<InstructorDto>), StatusCodes.Status200OK)]
@@ -48,6 +49,7 @@ namespace TrainingCenter.API.Controllers.InstructorControllers
         }
 
 
+        [Authorize(Roles = "Admin")]
         [HttpPatch("{id:int:min(1)}/activate")]
         [EndpointSummary("Activates an instructor.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -62,6 +64,7 @@ namespace TrainingCenter.API.Controllers.InstructorControllers
         }
 
 
+        [Authorize(Roles = "Admin")]
         [HttpPatch("{id:int:min(1)}/deactivate")]
         [EndpointSummary("Deactivates an instructor.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

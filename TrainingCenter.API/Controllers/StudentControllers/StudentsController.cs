@@ -20,6 +20,7 @@ namespace TrainingCenter.API.Controllers.StudentControllers
         }
 
 
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         [EndpointSummary("Retrieves all students.")]
         [ProducesResponseType(typeof(List<StudentDto>), StatusCodes.Status200OK)]
@@ -31,7 +32,7 @@ namespace TrainingCenter.API.Controllers.StudentControllers
             return Ok(students);
         }
 
-
+        // --- Owner or Admin
         [HttpGet("{id:int:min(1)}")]
         [EndpointSummary("Retrieves a student by ID.")]
         [ProducesResponseType(typeof(StudentDto), StatusCodes.Status200OK)]
@@ -46,7 +47,7 @@ namespace TrainingCenter.API.Controllers.StudentControllers
         }
 
 
-
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [EndpointSummary("Creates a new student.")]
         [ProducesResponseType(typeof(StudentDto), StatusCodes.Status201Created)]
@@ -65,6 +66,7 @@ namespace TrainingCenter.API.Controllers.StudentControllers
         }
 
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id:int:min(1)}")]
         [EndpointSummary("Updates an existing student.")]
         [ProducesResponseType(typeof(StudentDto), StatusCodes.Status200OK)]
@@ -79,13 +81,13 @@ namespace TrainingCenter.API.Controllers.StudentControllers
         }
 
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id:int:min(1)}")]
         [EndpointSummary("Deletes a student by ID.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-
         public async Task<IActionResult> Delete(int id)
         {
             await _studentService.DeleteAsync(id);
@@ -95,6 +97,7 @@ namespace TrainingCenter.API.Controllers.StudentControllers
 
 
 
+        // --- Owner or Admin
         [HttpGet("{id:int:min(1)}/enrollments")]
         [EndpointSummary("Retrieves all enrollments for a specific student.")]
         [ProducesResponseType(typeof(List<EnrollmentDto>), StatusCodes.Status200OK)]

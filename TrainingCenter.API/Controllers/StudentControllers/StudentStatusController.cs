@@ -19,7 +19,7 @@ namespace TrainingCenter.API.Controllers.StudentControllers
         }
 
 
-
+        [Authorize(Roles = "Admin")]
         [HttpGet("active")]
         [EndpointSummary("Retrieves all active students.")]
         [ProducesResponseType(typeof(List<StudentDto>), StatusCodes.Status200OK)]
@@ -32,12 +32,11 @@ namespace TrainingCenter.API.Controllers.StudentControllers
             return Ok(students);
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpGet("suspended")]
         [EndpointSummary("Retrieves all suspended students.")]
         [ProducesResponseType(typeof(List<StudentDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-
         public async Task<ActionResult<List<StudentDto>>> GetSuspended()
         {
             var students = await _studentService.GetSuspendedStudentsAsync();
@@ -46,11 +45,11 @@ namespace TrainingCenter.API.Controllers.StudentControllers
         }
 
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("graduated")]
         [EndpointSummary("Retrieves all graduated students.")]
         [ProducesResponseType(typeof(List<StudentDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-
         public async Task<ActionResult<List<StudentDto>>> GetGraduated()
         {
             var students = await _studentService.GetGraduatedStudentsAsync();
@@ -60,12 +59,12 @@ namespace TrainingCenter.API.Controllers.StudentControllers
 
 
 
+        [Authorize(Roles = "Admin")]
         [HttpPatch("{id:int:min(1)}/activate")]
         [EndpointSummary("Activates a student.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-
         public async Task<IActionResult> Activate(int id)
         {
             await _studentService.ActivateAsync(id);
@@ -74,12 +73,13 @@ namespace TrainingCenter.API.Controllers.StudentControllers
         }
 
 
+
+        [Authorize(Roles = "Admin")]
         [HttpPatch("{id:int:min(1)}/suspend")]
         [EndpointSummary("Suspends a student.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-
         public async Task<IActionResult> Suspend(int id)
         {
             await _studentService.SuspendAsync(id);
@@ -88,21 +88,18 @@ namespace TrainingCenter.API.Controllers.StudentControllers
         }
 
 
+        [Authorize(Roles = "Admin")]
         [HttpPatch("{id:int:min(1)}/graduate")]
         [EndpointSummary("Graduates a student.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-
         public async Task<IActionResult> Graduate(int id)
         {
             await _studentService.GraduateAsync(id);
 
             return NoContent();
         }
-
-
-
 
     }
 }

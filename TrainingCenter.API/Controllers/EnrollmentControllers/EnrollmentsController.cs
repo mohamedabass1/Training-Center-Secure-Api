@@ -16,11 +16,11 @@ namespace TrainingCenter.API.Controllers.EnrollmentControllers
             => _enrollmentService = enrollmentService;
 
 
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         [EndpointSummary("Retrieves all Enrollments.")]
         [ProducesResponseType(typeof(List<EnrollmentDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-
         public async Task<ActionResult<List<EnrollmentDto>>> GetAll()
         {
             var enrollments = await _enrollmentService.GetAllAsync();
@@ -28,12 +28,13 @@ namespace TrainingCenter.API.Controllers.EnrollmentControllers
             return Ok(enrollments);
         }
 
+
+
+        // Owner or Admin
         [HttpGet("{id:int:min(1)}")]
         [EndpointSummary("Retrieves an enrollment by ID.")]
         [ProducesResponseType(typeof(EnrollmentDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-
         public async Task<ActionResult<EnrollmentDto>> GetById(int id)
         {
 
@@ -42,12 +43,14 @@ namespace TrainingCenter.API.Controllers.EnrollmentControllers
             return Ok(enrollment);
         }
 
+
+
+        // Owner or Admin
         [HttpPost]
         [EndpointSummary("Creates a new enrollment.")]
         [ProducesResponseType(typeof(EnrollmentDto), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
 
         public async Task<ActionResult<EnrollmentDto>> EnrollStudent(EnrollStudentDto dto)
         {
@@ -60,13 +63,13 @@ namespace TrainingCenter.API.Controllers.EnrollmentControllers
         }
 
 
+        [Authorize(Roles = "Admin,Instructor")]
         [HttpPatch("{id:int:min(1)}/complete")]
         [EndpointSummary("Marks an enrollment as completed and assigns the final grade.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Complete(int id, CompleteEnrollmentDto dto)
         {
             await _enrollmentService.CompleteAsync(id, dto.FinalGrade);
@@ -74,13 +77,15 @@ namespace TrainingCenter.API.Controllers.EnrollmentControllers
             return NoContent();
         }
 
+
+
+        // Owner or Admin
         [HttpPatch("{id:int:min(1)}/drop")]
         [EndpointSummary("Drops a student from a course.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
-        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Drop(int id)
         {
             await _enrollmentService.DropAsync(id);
@@ -88,6 +93,8 @@ namespace TrainingCenter.API.Controllers.EnrollmentControllers
             return NoContent();
         }
 
+
+        [Authorize(Roles = "Admin,Instructor")]
         [HttpPatch("{id:int:min(1)}/progress")]
         [EndpointSummary("Updates the progress percentage of an active enrollment.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -102,6 +109,7 @@ namespace TrainingCenter.API.Controllers.EnrollmentControllers
         }
 
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("active")]
         [EndpointSummary("Retrieves all active enrollments.")]
         [ProducesResponseType(typeof(List<EnrollmentDto>), StatusCodes.Status200OK)]
@@ -126,6 +134,7 @@ namespace TrainingCenter.API.Controllers.EnrollmentControllers
         }
 
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("dropped")]
         [EndpointSummary("Retrieves all dropped enrollments.")]
         [ProducesResponseType(typeof(List<EnrollmentDto>), StatusCodes.Status200OK)]
@@ -138,7 +147,7 @@ namespace TrainingCenter.API.Controllers.EnrollmentControllers
         }
 
 
-
+        [Authorize(Roles = "Admin")]
         [HttpGet("statistics")]
         [EndpointSummary("Retrieves enrollment statistics.")]
         [ProducesResponseType(typeof(EnrollmentStatisticsDto), StatusCodes.Status200OK)]
