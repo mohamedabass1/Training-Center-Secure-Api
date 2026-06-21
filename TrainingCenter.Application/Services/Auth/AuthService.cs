@@ -1,10 +1,9 @@
-﻿
-
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using TrainingCenter.Application.DTOs.Authentication;
 using TrainingCenter.Application.Exceptions;
@@ -25,7 +24,7 @@ namespace TrainingCenter.Application.Services.Auth
             _jwtSettings = jwtOptions.Value;
         }
 
-        private string GenerateToken(User user)
+        private string GenerateAccessToken(User user)
         {
             List<Claim> claims =
             [
@@ -76,16 +75,27 @@ namespace TrainingCenter.Application.Services.Auth
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        private static string GenerateRefreshToken()
+        {
+            var bytes = new byte[64];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(bytes);
+            return Convert.ToBase64String(bytes);
+        }
+
         public async Task<AuthResponseDto> LoginAsync(LoginRequestDto dto)
         {
             User? user = await _context.Users
-                            .AsNoTracking()
                             .Include(u => u.Student)
                             .Include(u => u.Instructor)
-                            .FirstOrDefaultAsync(u => u.Email == dto.Email);
+                            .FirstOrDefaultAsync(u => u.Email == dto.Email && u.IsActive);
 
             if (user is null)
                 throw new UnauthorizedException("Invalid credentials");
+
+            if (!user.IsActive)
+                throw new UnauthorizedException("Account is inactive");
 
             bool isValidPassword = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
 
@@ -93,16 +103,98 @@ namespace TrainingCenter.Application.Services.Auth
                 throw new UnauthorizedException("Invalid credentials");
 
 
-            string token = GenerateToken(user);
+            string accessToken = GenerateAccessToken(user);
 
+            string refreshToken = GenerateRefreshToken();
+
+            user.RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(refreshToken);
+            user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays);
+            user.RefreshTokenRevokedAt = null;
+
+            await _context.SaveChangesAsync();
 
             return new AuthResponseDto
             {
-                Token = token,
+                AccessToken = accessToken,
+                RefreshToken = refreshToken,
                 Email = user.Email,
                 Role = user.Role.ToString(),
                 ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes)
             };
         }
+
+        public async Task<AuthResponseDto> RefreshTokenAsync(RefreshRequest request)
+        {
+            User? user = await _context.Users
+                      .Include(u => u.Student)
+                      .Include(u => u.Instructor)
+                      .FirstOrDefaultAsync(u => u.Email == request.Email && u.IsActive);
+
+            if (user is null)
+                throw new BadRequestException("Invalid refresh request");
+
+            if (user.RefreshTokenRevokedAt != null)
+                throw new UnauthorizedException("Refresh token is revoked");
+
+            if (user.RefreshTokenExpiresAt is null || user.RefreshTokenExpiresAt <= DateTime.UtcNow)
+                throw new UnauthorizedException("Refresh token is Expired");
+
+
+            if (string.IsNullOrEmpty(user.RefreshTokenHash))
+                throw new BadRequestException("Invalid refresh token");
+
+
+            bool refreshValid = BCrypt.Net.BCrypt.
+                Verify(request.RefreshToken, user.RefreshTokenHash);
+
+
+            if (!refreshValid)
+                throw new UnauthorizedException("Invalid refresh token");
+
+
+            string newAccessToken = GenerateAccessToken(user);
+
+            string NewRefreshToken = GenerateRefreshToken();
+
+            user.RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(NewRefreshToken);
+            user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays);
+            user.RefreshTokenRevokedAt = null;
+
+            await _context.SaveChangesAsync();
+
+            return new AuthResponseDto
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = NewRefreshToken,
+                Email = user.Email,
+                Role = user.Role.ToString(),
+                ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes)
+            };
+
+        }
+
+
+        public async Task LogoutAsync(LogoutRequest request)
+        {
+            User? user = await _context.Users
+                     .FirstOrDefaultAsync(u => u.Email == request.Email);
+
+            if (user is null)
+                return;
+
+            if (string.IsNullOrEmpty(user.RefreshTokenHash))
+                return;
+
+            bool refreshValid =
+                BCrypt.Net.BCrypt.Verify(request.RefreshToken, user.RefreshTokenHash);
+
+            if (!refreshValid)
+                return;
+
+            user.RefreshTokenRevokedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+        }
+
     }
 }

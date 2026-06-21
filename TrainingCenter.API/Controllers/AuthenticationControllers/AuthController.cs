@@ -22,10 +22,32 @@ namespace TrainingCenter.API.Controllers.AuthenticationControllers
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<AuthResponseDto>> Login(LoginRequestDto dto)
         {
-            AuthResponseDto response =
-                await _authService.LoginAsync(dto);
+            AuthResponseDto response = await _authService.LoginAsync(dto);
 
             return Ok(response);
+        }
+
+        [HttpPost("refresh")]
+        [EndpointSummary("Generates a new access token using a valid refresh token.")]
+        [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<AuthResponseDto>> RefreshToken(RefreshRequest dto)
+        {
+            AuthResponseDto response = await _authService.RefreshTokenAsync(dto);
+
+            return Ok(response);
+        }
+
+
+        [HttpPost("logout")]
+        [EndpointSummary("Revokes the current refresh token and logs the user out.")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> Logout(LogoutRequest dto)
+        {
+            await _authService.LogoutAsync(dto);
+
+            return NoContent();
         }
     }
 }

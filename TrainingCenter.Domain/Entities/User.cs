@@ -15,6 +15,10 @@ namespace TrainingCenter.Domain.Entities
 
         public bool IsActive { get; set; }
 
+        public string? RefreshTokenHash { get; set; }
+        public DateTime? RefreshTokenExpiresAt { get; set; }
+        public DateTime? RefreshTokenRevokedAt { get; set; }
+
         public Student? Student { get; set; }
 
         public Instructor? Instructor { get; set; }

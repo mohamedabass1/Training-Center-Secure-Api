@@ -117,8 +117,6 @@ builder.Services
 //                Authorization
 // ==================================================
 
-// This enables attributes like [Authorize] and role-based authorization.
-builder.Services.AddAuthorization();
 
 
 builder.Services.AddScoped<IAuthorizationHandler, StudentOwnerOrAdminHandler>();
@@ -130,6 +128,9 @@ builder.Services.AddScoped<IAuthorizationHandler, CourseOwnerOrAdminHandler>();
 builder.Services.AddScoped<IAuthorizationHandler, EnrollmentOwnerOrAdminHandler>();
 
 builder.Services.AddScoped<IAuthorizationHandler, EnrollmentCourseInstructorOrAdminHandler>();
+
+// This enables attributes like [Authorize] and role-based authorization.
+
 
 builder.Services.AddAuthorization(options =>
 {
@@ -223,9 +224,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseRouting();
-
 
 app.UseCors("TrainingCenterApiCrosPolicy");
 
