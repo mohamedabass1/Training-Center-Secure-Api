@@ -57,6 +57,13 @@ builder.Services.AddRateLimiter(options =>
     {
         var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
+        options.OnRejected = async (context, token) =>
+        {
+            await context.HttpContext.Response.WriteAsync(
+                "Too many login attempts. Please try again later.",
+                token);
+        };
+
         return RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: ip,
             factory: _ => new FixedWindowRateLimiterOptions
@@ -252,15 +259,6 @@ app.UseCors("TrainingCenterApiCrosPolicy");
 
 app.UseRateLimiter();
 
-app.Use(async (context, next) =>
-{
-    await next();
-
-    if (context.Response.StatusCode == StatusCodes.Status429TooManyRequests)
-    {
-        await context.Response.WriteAsync("Too many login attempts. Please try again later.");
-    }
-});
 
 
 app.UseAuthentication();
