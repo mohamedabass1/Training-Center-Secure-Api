@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using TrainingCenter.API.Common;
 using TrainingCenter.Application.DTOs.Authentication;
 using TrainingCenter.Application.Services.Auth;
@@ -17,6 +18,7 @@ namespace TrainingCenter.API.Controllers.AuthenticationControllers
         }
 
         [HttpPost("login")]
+        [EnableRateLimiting("AuthLimiter")]
         [EndpointSummary("Authenticates a user and returns a JWT token.")]
         [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
@@ -28,6 +30,7 @@ namespace TrainingCenter.API.Controllers.AuthenticationControllers
         }
 
         [HttpPost("refresh")]
+        [EnableRateLimiting("AuthLimiter")]
         [EndpointSummary("Generates a new access token using a valid refresh token.")]
         [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
