@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using TrainingCenter.API.Common;
 using TrainingCenter.Application.DTOs.Authentication;
@@ -42,7 +43,7 @@ namespace TrainingCenter.API.Controllers.AuthenticationControllers
             return Ok(response);
         }
 
-
+        [Authorize]
         [HttpPost("logout")]
         [EndpointSummary("Revokes the current refresh token and logs the user out.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

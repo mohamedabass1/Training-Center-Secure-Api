@@ -31,6 +31,9 @@ namespace TrainingCenter.Infrastructure.Configurations
             builder.Property(x => x.IsActive)
                    .HasDefaultValue(true);
 
+            builder.Property(x => x.RefreshTokenHash)
+                  .HasMaxLength(500);
+
             builder.ToTable(t =>
             {
                 t.HasCheckConstraint(

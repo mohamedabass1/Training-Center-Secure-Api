@@ -71,7 +71,7 @@ namespace TrainingCenter.API.Common
 
                 default:
                     statusCode = StatusCodes.Status500InternalServerError;
-                    message = exception.GetType().FullName!;
+                    message = "Internal Server Error";
                     break;
             }
 
