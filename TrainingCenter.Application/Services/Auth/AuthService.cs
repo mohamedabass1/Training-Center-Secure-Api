@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -17,11 +18,12 @@ namespace TrainingCenter.Application.Services.Auth
     {
         private readonly AppDbContext _context;
         private readonly JwtSettings _jwtSettings;
-
-        public AuthService(AppDbContext context, IOptions<JwtSettings> jwtOptions)
+        private readonly ILogger<AuthService> _logger;
+        public AuthService(AppDbContext context, IOptions<JwtSettings> jwtOptions, ILogger<AuthService> logger)
         {
             _context = context;
             _jwtSettings = jwtOptions.Value;
+            _logger = logger;
         }
 
         private string GenerateAccessToken(User user)
@@ -76,7 +78,7 @@ namespace TrainingCenter.Application.Services.Auth
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        private static string GenerateRefreshToken()
+        private string GenerateRefreshToken()
         {
             var bytes = new byte[64];
             using var rng = RandomNumberGenerator.Create();
@@ -91,17 +93,23 @@ namespace TrainingCenter.Application.Services.Auth
                             .Include(u => u.Instructor)
                             .FirstOrDefaultAsync(u => u.Email == dto.Email && u.IsActive);
 
-            if (user is null)
-                throw new UnauthorizedException("Invalid credentials");
 
-            if (!user.IsActive)
-                throw new UnauthorizedException("Account is inactive");
+            if (user is null)
+            {
+                _logger.LogWarning("Login failed. Email={Email}", dto.Email);
+
+                throw new UnauthorizedException("Invalid credentials");
+            }
+
 
             bool isValidPassword = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
 
             if (!isValidPassword)
-                throw new UnauthorizedException("Invalid credentials");
+            {
+                _logger.LogWarning("Login failed (bad password). UserId={UserId}, Email={Email}", user.UserId, user.Email);
 
+                throw new UnauthorizedException("Invalid credentials");
+            }
 
             string accessToken = GenerateAccessToken(user);
 
@@ -113,6 +121,9 @@ namespace TrainingCenter.Application.Services.Auth
 
             await _context.SaveChangesAsync();
 
+
+            _logger.LogInformation("Login succeeded. UserId={UserId}, Role={Role}", user.UserId, user.Role);
+
             return new AuthResponseDto
             {
                 AccessToken = accessToken,
@@ -122,6 +133,8 @@ namespace TrainingCenter.Application.Services.Auth
                 ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes)
             };
         }
+
+
 
         public async Task<AuthResponseDto> RefreshTokenAsync(RefreshRequest request)
         {
@@ -149,14 +162,18 @@ namespace TrainingCenter.Application.Services.Auth
 
 
             if (!refreshValid)
+            {
+                _logger.LogWarning("Invalid refresh token attempt. UserId={UserId}", user.UserId);
+
                 throw new UnauthorizedException("Invalid refresh token");
+            }
 
 
             string newAccessToken = GenerateAccessToken(user);
 
-            string NewRefreshToken = GenerateRefreshToken();
+            string newRefreshToken = GenerateRefreshToken();
 
-            user.RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(NewRefreshToken);
+            user.RefreshTokenHash = BCrypt.Net.BCrypt.HashPassword(newRefreshToken);
             user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays);
             user.RefreshTokenRevokedAt = null;
 
@@ -165,7 +182,7 @@ namespace TrainingCenter.Application.Services.Auth
             return new AuthResponseDto
             {
                 AccessToken = newAccessToken,
-                RefreshToken = NewRefreshToken,
+                RefreshToken = newRefreshToken,
                 Email = user.Email,
                 Role = user.Role.ToString(),
                 ExpiresAt = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes)
@@ -194,6 +211,9 @@ namespace TrainingCenter.Application.Services.Auth
             user.RefreshTokenRevokedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
+
+            _logger.LogInformation("Logout succeeded. UserId={UserId}", user.UserId);
         }
 
     }
