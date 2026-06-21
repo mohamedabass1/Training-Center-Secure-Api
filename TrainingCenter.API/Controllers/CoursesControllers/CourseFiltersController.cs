@@ -6,6 +6,7 @@ using TrainingCenter.Application.Services;
 
 namespace TrainingCenter.API.Controllers.CourseControllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/courses")]
     [Tags("09. Course Filters")]
@@ -19,45 +20,66 @@ namespace TrainingCenter.API.Controllers.CourseControllers
         }
 
 
-        [Authorize(Roles = "Admin,Instructor")]
-
+        // Owner or Admin
         [HttpPatch("{id:int:min(1)}/publish")]
         [EndpointSummary("Publishes a course.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Publish(int id)
+        public async Task<IActionResult> Publish(int id,
+                [FromServices] IAuthorizationService authorizationService)
         {
+
+            var authResult = await authorizationService.AuthorizeAsync(User, id,
+              "CourseOwnerOrAdmin");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
             await _courseService.PublishAsync(id);
             return NoContent();
         }
 
 
-        [Authorize(Roles = "Admin,Instructor")]
-
+        // Owner or Admin
         [HttpPatch("{id:int:min(1)}/archive")]
         [EndpointSummary("Archives a course.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Archive(int id)
+        public async Task<IActionResult> Archive(int id,
+                [FromServices] IAuthorizationService authorizationService)
         {
+
+            var authResult = await authorizationService.AuthorizeAsync(User, id,
+              "CourseOwnerOrAdmin");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
+
             await _courseService.ArchiveAsync(id);
             return NoContent();
         }
 
-        [Authorize(Roles = "Admin,Instructor")]
 
+        // Owner or Admin
         [HttpPatch("{id:int:min(1)}/unpublish")]
         [EndpointSummary("Moves a course back to draft status.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> Unpublish(int id)
+        public async Task<IActionResult> Unpublish(int id,
+                [FromServices] IAuthorizationService authorizationService)
         {
+
+            var authResult = await authorizationService.AuthorizeAsync(User, id,
+              "CourseOwnerOrAdmin");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
+
             await _courseService.UnpublishAsync(id);
             return NoContent();
         }

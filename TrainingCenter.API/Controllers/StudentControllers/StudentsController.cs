@@ -39,8 +39,15 @@ namespace TrainingCenter.API.Controllers.StudentControllers
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
 
-        public async Task<ActionResult<StudentDto>> GetById(int id)
+        public async Task<ActionResult<StudentDto>> GetById(int id,
+            [FromServices] IAuthorizationService authorizationService)
         {
+            var authResult = await authorizationService.AuthorizeAsync(User, id, "StudentOwnerOrAdmin");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
+
+
             var student = await _studentService.GetByIdAsync(id);
 
             return Ok(student);
@@ -66,15 +73,22 @@ namespace TrainingCenter.API.Controllers.StudentControllers
         }
 
 
-        [Authorize(Roles = "Admin")]
+        // --- Owner or Admin
         [HttpPut("{id:int:min(1)}")]
         [EndpointSummary("Updates an existing student.")]
         [ProducesResponseType(typeof(StudentDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<StudentDto>> Update(int id, UpdateStudentDto dto)
+        public async Task<ActionResult<StudentDto>> Update(int id, UpdateStudentDto dto,
+         [FromServices] IAuthorizationService authorizationService)
         {
+            var authResult = await authorizationService.AuthorizeAsync(User, id,
+                "StudentOwnerOrAdmin");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
+
             var student = await _studentService.UpdateAsync(id, dto);
 
             return Ok(student);
@@ -103,8 +117,16 @@ namespace TrainingCenter.API.Controllers.StudentControllers
         [ProducesResponseType(typeof(List<EnrollmentDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<EnrollmentDto>>> GetEnrollments(int id)
+
+        public async Task<ActionResult<List<EnrollmentDto>>> GetEnrollments(int id,
+            [FromServices] IAuthorizationService authorizationService)
         {
+            var authResult = await authorizationService.AuthorizeAsync(User, id,
+                "StudentOwnerOrAdmin");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
+
             var enrollments = await _studentService
                 .GetStudentEnrollmentsAsync(id);
 

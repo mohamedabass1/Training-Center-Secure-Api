@@ -35,8 +35,15 @@ namespace TrainingCenter.API.Controllers.EnrollmentControllers
         [EndpointSummary("Retrieves an enrollment by ID.")]
         [ProducesResponseType(typeof(EnrollmentDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<EnrollmentDto>> GetById(int id)
+        public async Task<ActionResult<EnrollmentDto>> GetById(int id,
+            [FromServices] IAuthorizationService authorizationService)
         {
+            var authResult = await authorizationService.AuthorizeAsync(User, id,
+                "EnrollmentOwnerOrAdmin");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
+
 
             var enrollment = await _enrollmentService.GetByIdAsync(id);
 
@@ -52,8 +59,15 @@ namespace TrainingCenter.API.Controllers.EnrollmentControllers
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
 
-        public async Task<ActionResult<EnrollmentDto>> EnrollStudent(EnrollStudentDto dto)
+        public async Task<ActionResult<EnrollmentDto>> EnrollStudent(EnrollStudentDto dto,
+               [FromServices] IAuthorizationService authorizationService)
         {
+            var authResult = await authorizationService.AuthorizeAsync(User, dto.StudentId,
+                "StudentOwnerOrAdmin");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
+
             var enrollment = await _enrollmentService.EnrollStudentAsync(dto.StudentId, dto.CourseId);
 
             return CreatedAtAction(
@@ -63,15 +77,21 @@ namespace TrainingCenter.API.Controllers.EnrollmentControllers
         }
 
 
-        [Authorize(Roles = "Admin,Instructor")]
         [HttpPatch("{id:int:min(1)}/complete")]
         [EndpointSummary("Marks an enrollment as completed and assigns the final grade.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
-        public async Task<IActionResult> Complete(int id, CompleteEnrollmentDto dto)
+        public async Task<IActionResult> Complete(int id, CompleteEnrollmentDto dto,
+                 [FromServices] IAuthorizationService authorizationService)
         {
+            var authResult = await authorizationService.AuthorizeAsync(User, id,
+                "EnrollmentCourseInstructorOrAdmin");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
+
             await _enrollmentService.CompleteAsync(id, dto.FinalGrade);
 
             return NoContent();
@@ -86,23 +106,35 @@ namespace TrainingCenter.API.Controllers.EnrollmentControllers
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
-        public async Task<IActionResult> Drop(int id)
+        public async Task<IActionResult> Drop(int id,
+                [FromServices] IAuthorizationService authorizationService)
         {
+            var authResult = await authorizationService.AuthorizeAsync(User, id,
+                "EnrollmentOwnerOrAdmin");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
+
             await _enrollmentService.DropAsync(id);
 
             return NoContent();
         }
 
 
-        [Authorize(Roles = "Admin,Instructor")]
         [HttpPatch("{id:int:min(1)}/progress")]
         [EndpointSummary("Updates the progress percentage of an active enrollment.")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> UpdateProgress(int id, UpdateEnrollmentProgressDto dto)
+        public async Task<IActionResult> UpdateProgress(int id, UpdateEnrollmentProgressDto dto,
+              [FromServices] IAuthorizationService authorizationService)
         {
+            var authResult = await authorizationService.AuthorizeAsync(User, id,
+                "EnrollmentCourseInstructorOrAdmin");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
             await _enrollmentService.UpdateProgressAsync(id, dto.ProgressPercent);
 
             return NoContent();
@@ -122,6 +154,7 @@ namespace TrainingCenter.API.Controllers.EnrollmentControllers
         }
 
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("completed")]
         [EndpointSummary("Retrieves all completed enrollments.")]
         [ProducesResponseType(typeof(List<EnrollmentDto>), StatusCodes.Status200OK)]

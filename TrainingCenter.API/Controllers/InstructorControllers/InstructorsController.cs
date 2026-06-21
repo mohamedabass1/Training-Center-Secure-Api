@@ -7,6 +7,7 @@ using TrainingCenter.Application.Services;
 
 namespace TrainingCenter.API.Controllers.InstructorControllers
 {
+
     [Authorize]
     [ApiController]
     [Route("api/instructors")]
@@ -40,8 +41,13 @@ namespace TrainingCenter.API.Controllers.InstructorControllers
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
 
-        public async Task<ActionResult<InstructorDto>> GetById(int id)
+        public async Task<ActionResult<InstructorDto>> GetById(int id
+                , [FromServices] IAuthorizationService authorizationService)
         {
+            var authResult = await authorizationService.AuthorizeAsync(base.User, id, "InstructorOwnerOrAdmin");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
 
             var instructor = await _instructorService.GetByIdAsync(id);
 
@@ -68,7 +74,7 @@ namespace TrainingCenter.API.Controllers.InstructorControllers
         }
 
 
-        [Authorize(Roles = "Admin")]
+        // --- Owner or Admin
         [HttpPut("{id:int:min(1)}")]
         [EndpointSummary("Updates an existing instructor.")]
         [ProducesResponseType(typeof(InstructorDto), StatusCodes.Status200OK)]
@@ -77,8 +83,16 @@ namespace TrainingCenter.API.Controllers.InstructorControllers
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
 
-        public async Task<ActionResult<InstructorDto>> Update(int id, UpdateInstructorDto dto)
+        public async Task<ActionResult<InstructorDto>> Update(int id, UpdateInstructorDto dto,
+              [FromServices] IAuthorizationService authorizationService)
         {
+            var authResult = await authorizationService.AuthorizeAsync(base.User, id,
+                "InstructorOwnerOrAdmin");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
+
+
             var instructor = await _instructorService.UpdateAsync(id, dto);
 
             return Ok(instructor);
@@ -102,14 +116,22 @@ namespace TrainingCenter.API.Controllers.InstructorControllers
 
 
 
-        // --- Instructor or Admin
+        // --- Owner or Admin
         [HttpGet("{id:int:min(1)}/courses")]
         [EndpointSummary("Retrieves all courses assigned to an instructor.")]
         [ProducesResponseType(typeof(List<CourseDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<List<CourseDto>>> GetCourses(int id)
+        public async Task<ActionResult<List<CourseDto>>> GetCourses(int id,
+            [FromServices] IAuthorizationService authorizationService)
         {
+            var authResult = await authorizationService.AuthorizeAsync(base.User, id,
+                "InstructorOwnerOrAdmin");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
+
+
             var courses = await _instructorService.GetInstructorCoursesAsync(id);
 
             return Ok(courses);

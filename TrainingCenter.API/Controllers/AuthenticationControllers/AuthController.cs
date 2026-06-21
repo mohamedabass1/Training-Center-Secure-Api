@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TrainingCenter.API.Common;
 using TrainingCenter.Application.DTOs.Authentication;
-using TrainingCenter.Application.Services;
+using TrainingCenter.Application.Services.Auth;
 
 namespace TrainingCenter.API.Controllers.AuthenticationControllers
 {

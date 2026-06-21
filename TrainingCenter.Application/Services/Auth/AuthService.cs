@@ -10,8 +10,9 @@ using TrainingCenter.Application.DTOs.Authentication;
 using TrainingCenter.Application.Exceptions;
 using TrainingCenter.Application.Settings;
 using TrainingCenter.Domain.Entities;
+using TrainingCenter.Domain.Enums;
 using TrainingCenter.Infrastructure.Context;
-namespace TrainingCenter.Application.Services
+namespace TrainingCenter.Application.Services.Auth
 {
     public class AuthService
     {
@@ -26,8 +27,8 @@ namespace TrainingCenter.Application.Services
 
         private string GenerateToken(User user)
         {
-            var claims = new[]
-            {
+            List<Claim> claims =
+            [
                 // Unique identifier for the user
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
 
@@ -37,7 +38,23 @@ namespace TrainingCenter.Application.Services
 
                 // Role (Student or Instructor or Admin) used later for authorization
                 new Claim(ClaimTypes.Role, user.Role.ToString())
-            };
+            ];
+
+            if (user.Role == UserRole.Instructor && user.Instructor != null)
+            {
+                claims.Add(new Claim(CustomClaimTypes.InstructorId,
+                    user.Instructor.InstructorId.ToString()));
+
+            }
+
+            if (user.Role == UserRole.Student && user.Student != null)
+            {
+                claims.Add(new Claim(CustomClaimTypes.StudentId,
+                    user.Student.StudentId.ToString()));
+
+            }
+
+
 
             var key = new SymmetricSecurityKey(
               Encoding.UTF8.GetBytes(_jwtSettings.Key));
@@ -61,11 +78,11 @@ namespace TrainingCenter.Application.Services
         }
         public async Task<AuthResponseDto> LoginAsync(LoginRequestDto dto)
         {
-
             User? user = await _context.Users
-                .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Email == dto.Email);
-
+                            .AsNoTracking()
+                            .Include(u => u.Student)
+                            .Include(u => u.Instructor)
+                            .FirstOrDefaultAsync(u => u.Email == dto.Email);
 
             if (user is null)
                 throw new UnauthorizedException("Invalid credentials");

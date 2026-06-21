@@ -319,5 +319,16 @@ namespace TrainingCenter.Application.Services
             };
         }
 
+        public async Task<bool> IsEnrollmentBelongsToStudentAsync(int enrollmentId, int studentId)
+        {
+            return await _context.Enrollments.
+                AnyAsync(e => e.EnrollmentId == enrollmentId && e.StudentId == studentId);
+        }
+        public async Task<bool> IsEnrollmentBelongsToInstructorAsync(int enrollmentId, int InstructorId)
+        {
+            return await _context.Enrollments.
+                AnyAsync(e => e.EnrollmentId == enrollmentId && e.Course.InstructorId == InstructorId);
+        }
+
     }
 }

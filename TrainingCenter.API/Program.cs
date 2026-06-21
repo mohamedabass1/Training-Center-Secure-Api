@@ -1,13 +1,16 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json.Serialization;
+using TrainingCenter.API.Authorization;
 using TrainingCenter.API.Common;
 using TrainingCenter.Application.Services;
+using TrainingCenter.Application.Services.Auth;
 using TrainingCenter.Application.Settings;
 using TrainingCenter.Application.Validators.Instructors;
 using TrainingCenter.Infrastructure.Context;
@@ -118,7 +121,35 @@ builder.Services
 builder.Services.AddAuthorization();
 
 
+builder.Services.AddScoped<IAuthorizationHandler, StudentOwnerOrAdminHandler>();
 
+builder.Services.AddScoped<IAuthorizationHandler, InstructorOwnerOrAdminHandler>();
+
+builder.Services.AddScoped<IAuthorizationHandler, CourseOwnerOrAdminHandler>();
+
+builder.Services.AddScoped<IAuthorizationHandler, EnrollmentOwnerOrAdminHandler>();
+
+builder.Services.AddScoped<IAuthorizationHandler, EnrollmentCourseInstructorOrAdminHandler>();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("StudentOwnerOrAdmin", policy =>
+            policy.Requirements.Add(new StudentOwnerOrAdminRequirement()));
+
+
+    options.AddPolicy("InstructorOwnerOrAdmin", policy =>
+            policy.Requirements.Add(new InstructorOwnerOrAdminRequirement()));
+
+    options.AddPolicy("CourseOwnerOrAdmin", policy =>
+            policy.Requirements.Add(new CourseOwnerOrAdminRequirement()));
+
+    options.AddPolicy("EnrollmentOwnerOrAdmin", policy =>
+            policy.Requirements.Add(new EnrollmentOwnerOrAdminRequirement()));
+
+    options.AddPolicy("EnrollmentCourseInstructorOrAdmin", policy =>
+            policy.Requirements.Add(new EnrollmentCourseInstructorOrAdminRequirement()));
+
+});
 
 // ==================================================
 //                     Swagger

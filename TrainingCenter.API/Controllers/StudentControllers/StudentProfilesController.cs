@@ -24,8 +24,15 @@ namespace TrainingCenter.API.Controllers.StudentControllers
         [ProducesResponseType(typeof(StudentProfileDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<StudentProfileDto>> GetProfile(int id)
+        public async Task<ActionResult<StudentProfileDto>> GetProfile(int id,
+             [FromServices] IAuthorizationService authorizationService)
         {
+            var authResult = await authorizationService.AuthorizeAsync(User, id,
+                "StudentOwnerOrAdmin");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
+
             var profile = await _studentService.GetProfileAsync(id);
 
             return Ok(profile);
@@ -39,8 +46,16 @@ namespace TrainingCenter.API.Controllers.StudentControllers
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<StudentProfileDto>> CreateProfile(int id, CreateStudentProfileDto dto)
+        public async Task<ActionResult<StudentProfileDto>> CreateProfile(int id, CreateStudentProfileDto dto,
+            [FromServices] IAuthorizationService authorizationService)
         {
+
+            var authResult = await authorizationService.AuthorizeAsync(User, id, "StudentOwnerOrAdmin");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
+
+
             var profile = await _studentService.CreateProfileAsync(id, dto);
 
             return CreatedAtAction(
@@ -57,8 +72,15 @@ namespace TrainingCenter.API.Controllers.StudentControllers
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<StudentProfileDto>> UpdateProfile(int id, UpdateStudentProfileDto dto)
+        public async Task<ActionResult<StudentProfileDto>> UpdateProfile(int id, UpdateStudentProfileDto dto,
+             [FromServices] IAuthorizationService authorizationService)
         {
+            var authResult = await authorizationService.AuthorizeAsync(User, id,
+                "StudentOwnerOrAdmin");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
+
             var profile = await _studentService.UpdateProfileAsync(id, dto);
 
             return Ok(profile);
@@ -72,8 +94,15 @@ namespace TrainingCenter.API.Controllers.StudentControllers
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
 
-        public async Task<IActionResult> DeleteProfile(int id)
+        public async Task<IActionResult> DeleteProfile(int id,
+             [FromServices] IAuthorizationService authorizationService)
         {
+            var authResult = await authorizationService.AuthorizeAsync(User, id,
+                "StudentOwnerOrAdmin");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
+
             await _studentService.DeleteProfileAsync(id);
 
             return NoContent();

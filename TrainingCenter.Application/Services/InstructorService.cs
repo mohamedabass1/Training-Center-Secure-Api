@@ -273,8 +273,10 @@ namespace TrainingCenter.Application.Services
         //          Manager Operations
         // ============================================
 
-        public async Task AssignManagerAsync(int instructorId, int? managerId)
+        public async Task AssignManagerAsync(int instructorId, AssignManagerDto assignManagerDto)
         {
+
+            int? managerId = assignManagerDto.ManagerId;
 
             if (instructorId == managerId)
             {

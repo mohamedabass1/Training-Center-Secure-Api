@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using TrainingCenter.Application.DTOs.Courses;
 using TrainingCenter.Application.DTOs.Enrollments;
-using TrainingCenter.Application.DTOs.Instructors;
 using TrainingCenter.Application.Exceptions;
 using TrainingCenter.Domain.Entities;
 using TrainingCenter.Domain.Enums;
@@ -247,6 +246,8 @@ namespace TrainingCenter.Application.Services
             await _context.SaveChangesAsync();
         }
 
+
+
         // ============================================
         //          Status Operations
         // ============================================
@@ -355,20 +356,17 @@ namespace TrainingCenter.Application.Services
                 .ToListAsync();
         }
 
-        public async Task<InstructorDto> GetCourseInstructorAsync(int courseId)
+        public async Task<CourseInstructorDto> GetCourseInstructorAsync(int courseId)
         {
-            InstructorDto? instructor = await _context.Courses
+            CourseInstructorDto? instructor = await _context.Courses
                 .AsNoTracking()
                 .Where(c => c.CourseId == courseId)
-                .Select(c => new InstructorDto
+                .Select(c => new CourseInstructorDto
                 {
                     InstructorId = c.Instructor.InstructorId,
                     FullName = c.Instructor.FirstName + " " + c.Instructor.LastName,
                     Email = c.Instructor.User.Email,
-                    HireDate = c.Instructor.HireDate,
-                    Salary = c.Instructor.Salary,
-                    IsActive = c.Instructor.IsActive,
-                    ManagerId = c.Instructor.ManagerId
+
                 })
                 .FirstOrDefaultAsync();
 
@@ -431,6 +429,14 @@ namespace TrainingCenter.Application.Services
                     Status = e.Status
                 })
                 .ToListAsync();
+        }
+
+        public async Task<bool> IsCourseOwnedByInstructorAsync(int courseId, int instructorId)
+        {
+            return await _context.Courses
+                .AnyAsync(c =>
+                    c.CourseId == courseId &&
+                    c.InstructorId == instructorId);
         }
     }
 }

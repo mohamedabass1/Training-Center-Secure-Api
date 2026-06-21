@@ -14,6 +14,10 @@
     }
 
 
+    public class AssignManagerDto
+    {
+        public int? ManagerId { get; set; }
+    }
 
 
 }
