@@ -40,7 +40,7 @@ namespace TrainingCenter.Application.Services
                 HireDate = instructor.HireDate,
                 Salary = instructor.Salary,
                 IsActive = instructor.IsActive,
-                ManagerId = instructor.ManagerId,
+                ManagerId = instructor?.ManagerId,
             };
 
         }
