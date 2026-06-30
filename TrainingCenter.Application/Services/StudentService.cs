@@ -110,8 +110,8 @@ namespace TrainingCenter.Application.Services
             {
                 Email = dto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                Role = UserRole.Student
-                IsActive = true   
+                Role = UserRole.Student,
+                IsActive = true
             };
 
             Student student = new Student
